@@ -1,0 +1,90 @@
+name: Autograding Tests
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install jupyter nbconvert pytest
+
+    - name: syntaxcheck
+      id: syntaxcheck
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Syntax Check"
+        setup-command: pip install opencv-python google ipython ipywidgets matplotlib numpy
+        command: jupyter nbconvert --to notebook --execute notebook.ipynb --stdout
+        timeout: 30
+        max-score: 20
+
+    - name: browseimagetest
+      id: browseimagetest
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Browse Image Test"
+        setup-command: python -c "import cv2; import numpy as np; cv2.imwrite('test_image.png', np.ones((100, 100, 3), dtype=np.uint8) * 255)" && pip install opencv-python google ipython ipywidgets matplotlib numpy
+        command: jupyter nbconvert --to notebook --execute notebook.ipynb --stdout
+        timeout: 30
+        max-score: 20
+
+    - name: grayscaleconversion
+      id: grayscaleconversion
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Grayscale Conversion"
+        setup-command: python -c "import cv2; import numpy as np; cv2.imwrite('test_image.png', np.ones((100, 100, 3), dtype=np.uint8) * 255)" && pip install opencv-python google ipython ipywidgets matplotlib numpy
+        command: jupyter nbconvert --to notebook --execute notebook.ipynb --stdout
+        timeout: 30
+        max-score: 20
+
+    - name: brightnessadjustment
+      id: brightnessadjustment
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Brightness Adjustment"
+        setup-command: python -c "import cv2; import numpy as np; cv2.imwrite('test_image.png', np.ones((100, 100, 3), dtype=np.uint8) * 255)" && pip install opencv-python google ipython ipywidgets matplotlib numpy
+        command: jupyter nbconvert --to notebook --execute notebook.ipynb --stdout
+        timeout: 30
+        max-score: 20
+
+    - name: resizeimage
+      id: resizeimage
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Resize Image"
+        setup-command: python -c "import cv2; import numpy as np; cv2.imwrite('test_image.png', np.ones((100, 100, 3), dtype=np.uint8) * 255)" && pip install opencv-python google ipython ipywidgets matplotlib numpy
+        command: jupyter nbconvert --to notebook --execute notebook.ipynb --stdout
+        timeout: 30
+        max-score: 20
+
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        SYNTAXCHECK_RESULTS: "${{steps.syntaxcheck.outputs.result}}"
+        BROWSEIMAGETEST_RESULTS: "${{steps.browseimagetest.outputs.result}}"
+        GRAYSCALECONVERSION_RESULTS: "${{steps.grayscaleconversion.outputs.result}}"
+        BRIGHTNESSADJUSTMENT_RESULTS: "${{steps.brightnessadjustment.outputs.result}}"
+        RESIZEIMAGE_RESULTS: "${{steps.resizeimage.outputs.result}}"
+      with:
+        runners: syntaxcheck,browseimagetest,grayscaleconversion,brightnessadjustment,resizeimage
